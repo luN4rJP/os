@@ -4,51 +4,47 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DeviceInfo</title>
-  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic&display=swap" rel="stylesheet" />
   <style>
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: "Zen Maru Gothic", "Segoe UI", sans-serif;
-      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
+    html, body {
+      margin: 0; padding: 0;
+      width: 100%; height: 100%;
       overflow: hidden;
-      padding: 1rem;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      font-family: "Zen Maru Gothic", "Segoe UI", sans-serif;
+      color: white;
+      user-select: none;
     }
-    h1 {
-      text-align: center;
-      width: 100%;
-      margin-bottom: 1rem;
-    }
-    .section {
-      background-color: rgba(255, 255, 255, 0.05);
-      padding: 1rem;
-      border-radius: 10px;
-      white-space: pre-wrap;
-      word-break: break-word;
+    #container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      max-width: 90vw;
+      max-height: 90vh;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
       font-size: 1.25rem;
       line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      box-shadow: 0 0 20px rgba(255,255,255,0.15);
+      pointer-events: none; /* クリック不可 */
+      transition: transform 0.1s ease-out;
     }
   </style>
 </head>
 <body>
-  <h1>OS情報表示ツール</h1>
-  <div id="container" style="max-width:600px; width:100%;">
-    <div class="section">
-      <div><strong>デバイス・OS情報</strong></div>
-      <div>OS名：<span id="osName">読み取り中...</span></div>
-      <div>OS詳細：<span id="osDetail">読み取り中...</span></div>
-      <div>ブラウザ詳細：<span id="browserDetail">読み取り中...</span></div>
-      <div>画面解像度：<span id="screenResolution">読み取り中...</span></div>
-      <div id="ipInfo" style="white-space: pre-line; margin-top: 0.5rem;">IPアドレスなど読み取り中...</div>
-    </div>
+  <div id="container">
+    読み込み中...
   </div>
 
   <script>
+    // 取得関数省略（前のgetOSInfoやIP取得等をここに入れる）
+
+    // OS情報取得関数
     function getOSInfo() {
       const ua = navigator.userAgent;
       const platform = navigator.platform;
@@ -100,47 +96,71 @@
       return { name: "不明", detail: ua };
     }
 
+    // ブラウザ情報
     function getBrowserInfo() {
       return navigator.userAgent;
     }
 
+    // 解像度情報
+    function getScreenInfo() {
+      return `${window.screen.width} x ${window.screen.height}`;
+    }
+
+    // IP取得
     async function getIP() {
       try {
         const res = await fetch("https://api.ipify.org?format=json");
         const json = await res.json();
         return json.ip;
       } catch {
-        return "IP取得失敗";
+        return "取得失敗";
       }
     }
 
+    // 情報更新
     async function updateInfo() {
       const os = getOSInfo();
-      document.getElementById("osName").textContent = os.name;
-      document.getElementById("osDetail").textContent = os.detail;
-      document.getElementById("browserDetail").textContent = getBrowserInfo();
-      document.getElementById("screenResolution").textContent = `${window.screen.width} x ${window.screen.height}`;
-
+      const browser = getBrowserInfo();
+      const screen = getScreenInfo();
       const ip = await getIP();
-      updateTimeInfo(ip);
-      setInterval(() => updateTimeInfo(ip), 1000);
-    }
 
-    function updateTimeInfo(ip) {
-      const dt = new Date();
-      const tz = -dt.getTimezoneOffset() / 60;
-      const tzTxt = `UTC${tz >= 0 ? "+" : ""}${tz}`;
-      document.getElementById("ipInfo").textContent =
-        `IPアドレス: ${ip}\n現在時刻: ${dt.toLocaleString()}\nタイムゾーン: ${tzTxt}`;
+      function updateTime() {
+        const dt = new Date();
+        const tz = -dt.getTimezoneOffset() / 60;
+        const tzTxt = `UTC${tz >= 0 ? "+" : ""}${tz}`;
+        const container = document.getElementById("container");
+        container.textContent =
+          `【デバイス情報】\n` +
+          `OS: ${os.name}\n` +
+          `OS詳細: ${os.detail}\n\n` +
+          `ブラウザ: ${browser}\n` +
+          `画面解像度: ${screen}\n\n` +
+          `IPアドレス: ${ip}\n` +
+          `現在時刻: ${dt.toLocaleString()}\n` +
+          `タイムゾーン: ${tzTxt}`;
+      }
+
+      updateTime();
+      setInterval(updateTime, 1000);
     }
 
     updateInfo();
 
+    // カーソル追従（中心基準で小さく動く）
     const container = document.getElementById("container");
-    document.addEventListener("mousemove", e => {
-      const x = (e.clientX - window.innerWidth / 2) / 50;
-      const y = (e.clientY - window.innerHeight / 2) / 50;
-      container.style.transform = `translate(${x}px, ${y}px)`;
+    window.addEventListener("mousemove", (e) => {
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
+      // 最大移動量(px)
+      const maxMove = 20;
+      // マウス位置から中心までの距離を -maxMove〜maxMove に制限
+      let moveX = e.clientX - centerX;
+      let moveY = e.clientY - centerY;
+
+      moveX = Math.max(-maxMove, Math.min(maxMove, moveX));
+      moveY = Math.max(-maxMove, Math.min(maxMove, moveY));
+
+      container.style.transform = `translate(calc(-50% + ${moveX}px), calc(-50% + ${moveY}px))`;
     });
   </script>
 </body>
