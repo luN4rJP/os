@@ -76,12 +76,10 @@
         return { name: `iPadOS ${version}`, detail: ua };
       }
 
-      // Android
 const androidMatch = ua.match(/Android\s+([\d.]+)/);
 if (androidMatch) {
   let extra = "";
 
-  // カスタムROM/独自OS検出（順序重要）
   if (/MIUI|MiuiBrowser|Mi\s+Build/i.test(ua)) {
     extra = " / MIUI (MiOS)";
   } else if (/EMUI|Huawei/i.test(ua)) {
@@ -163,20 +161,32 @@ if (androidMatch) {
     }
 
     updateInfo();
+let targetX = 0, targetY = 0;
+let currentX = 0, currentY = 0;
 
-    const container = document.getElementById("container");
-    window.addEventListener("mousemove", (e) => {
-      const centerX = window.innerWidth / 2;
-      const centerY = window.innerHeight / 2;
-      const maxMove = 60;
-      let moveX = e.clientX - centerX;
-      let moveY = e.clientY - centerY;
+function animate() {
+  currentX += (targetX - currentX) * 0.1;
+  currentY += (targetY - currentY) * 0.1;
 
-      moveX = Math.max(-maxMove, Math.min(maxMove, moveX));
-      moveY = Math.max(-maxMove, Math.min(maxMove, moveY));
+  container.style.transform = `translate(calc(-50% + ${currentX}px), calc(-50% + ${currentY}px))`;
+  requestAnimationFrame(animate);
+}
+animate();
 
-      container.style.transform = `translate(calc(-50% + ${moveX}px), calc(-50% + ${moveY}px))`;
-    });
+window.addEventListener("mousemove", (e) => {
+  const centerX = window.innerWidth / 2;
+  const centerY = window.innerHeight / 2;
+  const maxMove = 50;
+
+  let moveX = e.clientX - centerX;
+  let moveY = e.clientY - centerY;
+
+  moveX = Math.max(-maxMove, Math.min(maxMove, moveX));
+  moveY = Math.max(-maxMove, Math.min(maxMove, moveY));
+
+  targetX = moveX;
+  targetY = moveY;
+});
   </script>
 </body>
 </html>
