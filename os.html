@@ -165,8 +165,8 @@ let targetX = 0, targetY = 0;
 let currentX = 0, currentY = 0;
 
 function animate() {
-  currentX += (targetX - currentX) * 0.05;
-  currentY += (targetY - currentY) * 0.05;
+  currentX += (targetX - currentX) * 0.01;
+  currentY += (targetY - currentY) * 0.01;
 
   container.style.transform = `translate(calc(-50% + ${currentX}px), calc(-50% + ${currentY}px))`;
   requestAnimationFrame(animate);
