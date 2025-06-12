@@ -17,25 +17,35 @@
       align-items: center;
       min-height: 100vh;
       overflow: hidden;
+      padding: 1rem;
     }
-    .main-info { font-size: 2rem; font-weight: bold; margin-bottom: 1rem; text-align: center; }
-    .section {
+    h1 {
+      text-align: center;
+      width: 100%;
       margin-bottom: 1rem;
+    }
+    .section {
       background-color: rgba(255, 255, 255, 0.05);
       padding: 1rem;
       border-radius: 10px;
       white-space: pre-wrap;
       word-break: break-word;
+      font-size: 1.25rem;
+      line-height: 1.5;
     }
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 10px; }
   </style>
 </head>
 <body>
   <h1>OS情報表示ツール</h1>
-  <div class="info">
-    <div><span class="label">OS名：</span><span id="osName">読み取り中...</span></div>
-    <div><span class="label">詳細情報：</span><span id="osDetail">読み取り中...</span></div>
+  <div id="container" style="max-width:600px; width:100%;">
+    <div class="section">
+      <div><strong>デバイス・OS情報</strong></div>
+      <div>OS名：<span id="osName">読み取り中...</span></div>
+      <div>OS詳細：<span id="osDetail">読み取り中...</span></div>
+      <div>ブラウザ詳細：<span id="browserDetail">読み取り中...</span></div>
+      <div>画面解像度：<span id="screenResolution">読み取り中...</span></div>
+      <div id="ipInfo" style="white-space: pre-line; margin-top: 0.5rem;">IPアドレスなど読み取り中...</div>
+    </div>
   </div>
 
   <script>
@@ -43,7 +53,6 @@
       const ua = navigator.userAgent;
       const platform = navigator.platform;
 
-      // iOS/iPadOS detection
       function getiOSVersion() {
         const match = navigator.appVersion.match(/OS (\d+)[_.](\d+)(?:[_.](\d+))?/);
         if (match) {
@@ -52,69 +61,50 @@
         return null;
       }
 
-function getOSInfo() {
-  const ua = navigator.userAgent;
-  const platform = navigator.platform;
+      function getiOSVersionString() {
+        const version = getiOSVersion();
+        if (!version) return "不明";
+        return version.join(".");
+      }
 
-  // iOS/iPadOS detection using improved method
-  function getiOSVersion() {
-    const match = navigator.appVersion.match(/OS (\d+)[_.](\d+)(?:[_.](\d+))?/);
-    if (match) {
-      return [parseInt(match[1]), parseInt(match[2]), parseInt(match[3] || "0")];
+      if (/iPhone/.test(platform)) {
+        const version = getiOSVersionString();
+        return { name: `iOS ${version}`, detail: ua };
+      }
+
+      if (/iPad/.test(platform) || (platform === "MacIntel" && navigator.maxTouchPoints > 1)) {
+        const version = getiOSVersionString();
+        return { name: `iPadOS ${version}`, detail: ua };
+      }
+
+      const androidMatch = ua.match(/Android\s+([\d.]+)/);
+      if (androidMatch) {
+        const version = androidMatch[1];
+        return { name: `Android ${version}`, detail: ua };
+      }
+
+      if (/Windows NT 10\.0/.test(ua)) {
+        return { name: "Windows 10 / 11", detail: ua };
+      }
+
+      if (/Windows NT/.test(ua)) {
+        const detail = ua.match(/Windows NT [^;)]*/)?.[0] ?? "Windows";
+        return { name: "Windows", detail };
+      }
+
+      if (/Mac OS X/.test(ua)) {
+        const version = (ua.match(/Mac OS X (\d+[_\.]\d+[_\.]?\d*)/) || [])[1];
+        return { name: "macOS", detail: version ? version.replace(/_/g, ".") : "不明" };
+      }
+
+      return { name: "不明", detail: ua };
     }
-    return null;
-  }
-
-  function getiOSVersionString() {
-    const version = getiOSVersion();
-    if (!version) return "不明";
-    return version.join(".");
-  }
-
-  // iPhone
-  if (/iPhone/.test(platform)) {
-    const version = getiOSVersionString();
-    return { name: `iOS ${version}`, detail: ua };
-  }
-
-  // iPad (true iPad or macOS with touch which is often iPad masquerading as Mac)
-  if (/iPad/.test(platform) || (platform === "MacIntel" && navigator.maxTouchPoints > 1)) {
-    const version = getiOSVersionString();
-    return { name: `iPadOS ${version}`, detail: ua };
-  }
-
-  // Android
-  const androidMatch = ua.match(/Android\s+([\d.]+)/);
-  if (androidMatch) {
-    const version = androidMatch[1];
-    return { name: `Android ${version}`, detail: ua };
-  }
-
-  // Windows 10/11
-  if (/Windows NT 10\.0/.test(ua)) {
-    return { name: "Windows 10 / 11", detail: ua };
-  }
-
-  // その他 Windows
-  if (/Windows NT/.test(ua)) {
-    const detail = ua.match(/Windows NT [^;)]*/)?.[0] ?? "Windows";
-    return { name: "Windows", detail };
-  }
-
-  // macOS
-  if (/Mac OS X/.test(ua)) {
-    const version = (ua.match(/Mac OS X (\d+[_\.]\d+[_\.]?\d*)/) || [])[1];
-    return { name: "macOS", detail: version ? version.replace(/_/g, ".") : "不明" };
-  }
-
-  return { name: "不明", detail: ua };
-}
 
     function getBrowserInfo() {
       return navigator.userAgent;
     }
 
-    async function getIPAndTime() {
+    async function getIP() {
       try {
         const res = await fetch("https://api.ipify.org?format=json");
         const json = await res.json();
@@ -129,9 +119,9 @@ function getOSInfo() {
       document.getElementById("osName").textContent = os.name;
       document.getElementById("osDetail").textContent = os.detail;
       document.getElementById("browserDetail").textContent = getBrowserInfo();
-      document.getElementById("hardwareInfo").textContent = await getHardwareInfo();
+      document.getElementById("screenResolution").textContent = `${window.screen.width} x ${window.screen.height}`;
 
-      const ip = await getIPAndTime();
+      const ip = await getIP();
       updateTimeInfo(ip);
       setInterval(() => updateTimeInfo(ip), 1000);
     }
@@ -146,11 +136,10 @@ function getOSInfo() {
 
     updateInfo();
 
-    // カーソル追従
     const container = document.getElementById("container");
     document.addEventListener("mousemove", e => {
-      const x = (e.clientX - window.innerWidth / 2) / 100;
-      const y = (e.clientY - window.innerHeight / 2) / 100;
+      const x = (e.clientX - window.innerWidth / 2) / 50;
+      const y = (e.clientY - window.innerHeight / 2) / 50;
       container.style.transform = `translate(${x}px, ${y}px)`;
     });
   </script>
