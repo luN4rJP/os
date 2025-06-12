@@ -124,13 +124,13 @@
         const tzTxt = `UTC${tz >= 0 ? "+" : ""}${tz}`;
         const container = document.getElementById("container");
         container.textContent =
-          `【DeviceInfo】\n` +
-          `OS: ${os.name}\n` +
-          `OS Detail: ${os.detail}\n` +
+          `【DeviceInfo】\n\n` +
+          `OS: ${os.name}\n\n` +
+          `OS Detail: ${os.detail}\n\n` +
           `Browser: ${browser}\n\n` +
           `Display: ${screen}\n\n` +
-          `IP: ${ip}\n` +
-          `Time: ${dt.toLocaleString()}\n` +
+          `IP: ${ip}\n\n` +
+          `Time: ${dt.toLocaleString()}\n\n` +
           `Timezone: ${tzTxt}`;
       }
 
