@@ -52,58 +52,70 @@
         return null;
       }
 
-      function getiOSVersionString() {
-        const version = getiOSVersion();
-        if (!version) return "不明";
-        return version.join(".");
-      }
+function getOSInfo() {
+  const ua = navigator.userAgent;
+  const platform = navigator.platform;
 
-      // iPhone
-      if (/iPhone/.test(platform)) {
-        const version = getiOSVersionString();
-        return { name: `iOS ${version}`, detail: ua };
-      }
-
-      // iPad (実機またはMac上での擬似iPad)
-      if (/iPad/.test(platform) || (platform === "MacIntel" && navigator.maxTouchPoints > 1)) {
-        const version = getiOSVersionString();
-        return { name: `iPadOS ${version}`, detail: ua };
-      }
-
-      // Android
-      const androidMatch = ua.match(/Android\s+([\d.]+)/);
-      if (androidMatch) {
-        const version = androidMatch[1];
-        return { name: `Android ${version}`, detail: ua };
-      }
-
-      // Windows 10/11
-      if (/Windows NT 10\.0/.test(ua)) {
-        return { name: "Windows 10 / 11", detail: ua };
-      }
-
-      // その他 Windows
-      if (/Windows NT/.test(ua)) {
-        const detail = ua.match(/Windows NT [^;)]*/)?.[0] ?? "Windows";
-        return { name: "Windows", detail };
-      }
-
-      // macOS
-      if (/Mac OS X/.test(ua)) {
-        const version = (ua.match(/Mac OS X (\d+[_\.]\d+[_\.]?\d*)/) || [])[1];
-        return { name: "macOS", detail: version ? version.replace(/_/g, ".") : "不明" };
-      }
-
-      return { name: "不明", detail: ua };
+  // iOS/iPadOS detection using improved method
+  function getiOSVersion() {
+    const match = navigator.appVersion.match(/OS (\d+)[_.](\d+)(?:[_.](\d+))?/);
+    if (match) {
+      return [parseInt(match[1]), parseInt(match[2]), parseInt(match[3] || "0")];
     }
+    return null;
+  }
+
+  function getiOSVersionString() {
+    const version = getiOSVersion();
+    if (!version) return "不明";
+    return version.join(".");
+  }
+
+  // iPhone
+  if (/iPhone/.test(platform)) {
+    const version = getiOSVersionString();
+    return { name: `iOS ${version}`, detail: ua };
+  }
+
+  // iPad (true iPad or macOS with touch which is often iPad masquerading as Mac)
+  if (/iPad/.test(platform) || (platform === "MacIntel" && navigator.maxTouchPoints > 1)) {
+    const version = getiOSVersionString();
+    return { name: `iPadOS ${version}`, detail: ua };
+  }
+
+  // Android
+  const androidMatch = ua.match(/Android\s+([\d.]+)/);
+  if (androidMatch) {
+    const version = androidMatch[1];
+    return { name: `Android ${version}`, detail: ua };
+  }
+
+  // Windows 10/11
+  if (/Windows NT 10\.0/.test(ua)) {
+    return { name: "Windows 10 / 11", detail: ua };
+  }
+
+  // その他 Windows
+  if (/Windows NT/.test(ua)) {
+    const detail = ua.match(/Windows NT [^;)]*/)?.[0] ?? "Windows";
+    return { name: "Windows", detail };
+  }
+
+  // macOS
+  if (/Mac OS X/.test(ua)) {
+    const version = (ua.match(/Mac OS X (\d+[_\.]\d+[_\.]?\d*)/) || [])[1];
+    return { name: "macOS", detail: version ? version.replace(/_/g, ".") : "不明" };
+  }
+
+  return { name: "不明", detail: ua };
+}
 
     function updateInfo() {
-      const os = getOSInfo();
-      document.getElementById("osName").textContent = os.name;
-      document.getElementById("osDetail").textContent = os.detail;
-    }
+const os = getOSInfo();
+document.getElementById("osName").textContent = os.name;
+document.getElementById("osDetail").textContent = os.detail;
 
-    updateInfo();
+      updateInfo();
   </script>
 </body>
 </html>
