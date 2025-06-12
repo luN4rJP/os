@@ -6,10 +6,7 @@
   <title>DeviceInfo</title>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic&display=swap" rel="stylesheet">
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: "Zen Maru Gothic", "Segoe UI", sans-serif;
@@ -21,32 +18,17 @@
       min-height: 100vh;
       overflow: hidden;
     }
-
-    .main-info {
-      font-size: 2rem;
-      font-weight: bold;
-      margin-bottom: 1rem;
-      text-align: center;
-      color: #ffffff;
-    }
-
+    .main-info { font-size: 2rem; font-weight: bold; margin-bottom: 1rem; text-align: center; }
     .section {
       margin-bottom: 1rem;
       background-color: rgba(255, 255, 255, 0.05);
       padding: 1rem;
       border-radius: 10px;
       white-space: pre-wrap;
-      word-break: break-all;
+      word-break: break-word;
     }
-
-    ::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.3);
-      border-radius: 10px;
-    }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 10px; }
   </style>
 </head>
 <body>
@@ -67,41 +49,36 @@
     function getOSInfo() {
       const ua = navigator.userAgent;
       const platform = navigator.platform;
-      const isIPad = /iPad/.test(ua) || (navigator.userAgentData?.platform === 'iPad');
-      const isIPhone = /iPhone/.test(ua);
-      const isMacLikeIPad = /Macintosh/.test(ua) && 'ontouchend' in document;
-
-      // iPadOS or iOS
-      if (isIPad || isIPhone || isMacLikeIPad) {
-        const match = ua.match(/OS (\d+)[._](\d+)(?:[._](\d+))?/);
-        const version = match ? `${match[1]}.${match[2]}${match[3] ? "." + match[3] : ""}` : "不明";
-        const name = isIPad || isMacLikeIPad ? "iPadOS" : "iOS";
-        return { name: `${name} ${version}`, detail: ua };
-      }
 
       // Windows 11
       if (/Windows NT 10\.0/.test(ua) && ua.includes("11_")) {
         return { name: "Windows 11", detail: "Windows NT 10.0 x64 (Windows 11)" };
       }
       // Windows 10
-      if (/Windows NT 10\.0/.test(ua)) {
+      if (/Windows NT 10\.0/.test(ua) && !ua.includes("11_")) {
         return { name: "Windows 10", detail: "Windows NT 10.0 x64" };
       }
       // その他 Windows
       if (/Windows NT/.test(ua)) {
         return { name: "Windows", detail: ua.match(/Windows NT [^;)]*/)[0] };
       }
-      // macOS（iPadより後に判定）
+      // macOS
       if (/Mac OS X/.test(ua)) {
         const v = (ua.match(/Mac OS X (\d+[_\.]\d+[_\.]?\d*)/) || [])[1];
         return { name: "macOS", detail: `Mac OS X ${v ? v.replace(/_/g, ".") : "不明"}` };
       }
-      // Android
+      // Android（バージョン正確に）
       if (/Android\s+[\d.]+/.test(ua)) {
         const v = (ua.match(/Android\s+([\d.]+)/) || [])[1];
         return { name: `Android ${v}`, detail: `Android ${v}` };
       }
-
+      // iOS / iPadOS
+      if (/iP(hone|od|ad)/.test(platform)) {
+        const v = (navigator.appVersion).match(/OS (\d+)_(\d+)_?(\d+)?/);
+        const version = v ? `${v[1]}.${v[2]}.${v[3] || 0}` : "不明";
+        const dev = platform.includes("iPad") ? "iPadOS" : "iOS";
+        return { name: `${dev} ${version}`, detail: navigator.userAgent };
+      }
       return { name: "不明", detail: ua };
     }
 
@@ -112,9 +89,9 @@
     async function getIPAndTime() {
       try {
         const res = await fetch("https://api.ipify.org?format=json");
-        const data = await res.json();
-        return data.ip;
-      } catch (e) {
+        const json = await res.json();
+        return json.ip;
+      } catch {
         return "IP取得失敗";
       }
     }
@@ -132,18 +109,18 @@
     }
 
     function updateTimeInfo(ip) {
-      const date = new Date();
-      const timezoneOffset = -date.getTimezoneOffset() / 60;
-      const timezone = `UTC${timezoneOffset >= 0 ? "+" : ""}${timezoneOffset}`;
+      const dt = new Date();
+      const tz = -dt.getTimezoneOffset() / 60;
+      const tzTxt = `UTC${tz >= 0 ? "+" : ""}${tz}`;
       document.getElementById("ipInfo").textContent =
-        `IPアドレス: ${ip}\n現在時刻: ${date.toLocaleString()}\nタイムゾーン: ${timezone}`;
+        `IPアドレス: ${ip}\n現在時刻: ${dt.toLocaleString()}\nタイムゾーン: ${tzTxt}`;
     }
 
     updateInfo();
 
-    // マウス追従エフェクト
-    const container = document.getElementById('container');
-    document.addEventListener('mousemove', (e) => {
+    // カーソル追従
+    const container = document.getElementById("container");
+    document.addEventListener("mousemove", e => {
       const x = (e.clientX - window.innerWidth / 2) / 100;
       const y = (e.clientY - window.innerHeight / 2) / 100;
       container.style.transform = `translate(${x}px, ${y}px)`;
