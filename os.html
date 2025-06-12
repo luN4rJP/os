@@ -71,11 +71,30 @@
         return { name: `iPadOS ${version}`, detail: ua };
       }
 
-      const androidMatch = ua.match(/Android\s+([\d.]+)/);
-      if (androidMatch) {
-        const version = androidMatch[1];
-        return { name: `Android ${version}`, detail: ua };
-      }
+      // Android
+const androidMatch = ua.match(/Android\s+([\d.]+)/);
+if (androidMatch) {
+  let extra = "";
+
+  // カスタムROM/独自OS検出（順序重要）
+  if (/MIUI|MiuiBrowser|Mi\s+Build/i.test(ua)) {
+    extra = " / MIUI (MiOS)";
+  } else if (/EMUI|Huawei/i.test(ua)) {
+    extra = " / EMUI";
+  } else if (/ColorOS/i.test(ua)) {
+    extra = " / ColorOS";
+  } else if (/OxygenOS/i.test(ua)) {
+    extra = " / OxygenOS";
+  } else if (/HarmonyOS/i.test(ua)) {
+    extra = " / HarmonyOS";
+  } else if (/LineageOS/i.test(ua)) {
+    extra = " / LineageOS";
+  } else if (/EvolutionX/i.test(ua)) {
+    extra = " / EvolutionX";
+  }
+
+  return { name: "AndroidOS", detail: ua + extra };
+}
 
       if (/Windows NT 10\.0/.test(ua)) {
         return { name: "Windows 10 / 11", detail: ua };
