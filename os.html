@@ -165,8 +165,8 @@ let targetX = 0, targetY = 0;
 let currentX = 0, currentY = 0;
 
 function animate() {
-  currentX += (targetX - currentX) * 0.1;
-  currentY += (targetY - currentY) * 0.1;
+  currentX += (targetX - currentX) * 0.05;
+  currentY += (targetY - currentY) * 0.05;
 
   container.style.transform = `translate(calc(-50% + ${currentX}px), calc(-50% + ${currentY}px))`;
   requestAnimationFrame(animate);
@@ -176,7 +176,7 @@ animate();
 window.addEventListener("mousemove", (e) => {
   const centerX = window.innerWidth / 2;
   const centerY = window.innerHeight / 2;
-  const maxMove = 50;
+  const maxMove = 100;
 
   let moveX = e.clientX - centerX;
   let moveY = e.clientY - centerY;
