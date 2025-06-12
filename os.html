@@ -2,129 +2,97 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DeviceInfo</title>
-  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>OS判定ページ</title>
   <style>
-    * { box-sizing: border-box; }
     body {
-      margin: 0;
-      font-family: "Zen Maru Gothic", "Segoe UI", sans-serif;
-      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      overflow: hidden;
+      font-family: sans-serif;
+      padding: 2rem;
     }
-    .main-info { font-size: 2rem; font-weight: bold; margin-bottom: 1rem; text-align: center; }
-    .section {
+    h1 {
       margin-bottom: 1rem;
-      background-color: rgba(255, 255, 255, 0.05);
-      padding: 1rem;
-      border-radius: 10px;
-      white-space: pre-wrap;
-      word-break: break-word;
     }
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 10px; }
+    .info {
+      margin-top: 1rem;
+    }
+    .label {
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
-  <div class="container" id="container">
-    <div class="main-info" id="osName">OS</div>
-    <div class="section" id="osDetail">OSの詳細</div>
-    <div class="section" id="browserDetail">ブラウザの詳細</div>
-    <div class="section" id="hardwareInfo">ハードウェア情報</div>
-    <div class="section" id="ipInfo">IPアドレスや時間</div>
+  <h1>OS情報表示ツール</h1>
+  <div class="info">
+    <div><span class="label">OS名：</span><span id="osName">読み取り中...</span></div>
+    <div><span class="label">詳細情報：</span><span id="osDetail">読み取り中...</span></div>
   </div>
 
   <script>
-    async function getHardwareInfo() {
-      const screenRes = `${screen.width}x${screen.height}`;
-      return `画面解像度: ${screenRes}`;
-    }
-
     function getOSInfo() {
       const ua = navigator.userAgent;
       const platform = navigator.platform;
 
-      // Windows 11
-      if (/Windows NT 10\.0/.test(ua) && ua.includes("11_")) {
-        return { name: "Windows 11", detail: "Windows NT 10.0 x64 (Windows 11)" };
+      // iOS/iPadOS detection
+      function getiOSVersion() {
+        const match = navigator.appVersion.match(/OS (\d+)[_.](\d+)(?:[_.](\d+))?/);
+        if (match) {
+          return [parseInt(match[1]), parseInt(match[2]), parseInt(match[3] || "0")];
+        }
+        return null;
       }
-      // Windows 10
-      if (/Windows NT 10\.0/.test(ua) && !ua.includes("11_")) {
-        return { name: "Windows 10", detail: "Windows NT 10.0 x64" };
+
+      function getiOSVersionString() {
+        const version = getiOSVersion();
+        if (!version) return "不明";
+        return version.join(".");
       }
+
+      // iPhone
+      if (/iPhone/.test(platform)) {
+        const version = getiOSVersionString();
+        return { name: `iOS ${version}`, detail: ua };
+      }
+
+      // iPad (実機またはMac上での擬似iPad)
+      if (/iPad/.test(platform) || (platform === "MacIntel" && navigator.maxTouchPoints > 1)) {
+        const version = getiOSVersionString();
+        return { name: `iPadOS ${version}`, detail: ua };
+      }
+
+      // Android
+      const androidMatch = ua.match(/Android\s+([\d.]+)/);
+      if (androidMatch) {
+        const version = androidMatch[1];
+        return { name: `Android ${version}`, detail: ua };
+      }
+
+      // Windows 10/11
+      if (/Windows NT 10\.0/.test(ua)) {
+        return { name: "Windows 10 / 11", detail: ua };
+      }
+
       // その他 Windows
       if (/Windows NT/.test(ua)) {
-        return { name: "Windows", detail: ua.match(/Windows NT [^;)]*/)[0] };
+        const detail = ua.match(/Windows NT [^;)]*/)?.[0] ?? "Windows";
+        return { name: "Windows", detail };
       }
+
       // macOS
       if (/Mac OS X/.test(ua)) {
-        const v = (ua.match(/Mac OS X (\d+[_\.]\d+[_\.]?\d*)/) || [])[1];
-        return { name: "macOS", detail: `Mac OS X ${v ? v.replace(/_/g, ".") : "不明"}` };
+        const version = (ua.match(/Mac OS X (\d+[_\.]\d+[_\.]?\d*)/) || [])[1];
+        return { name: "macOS", detail: version ? version.replace(/_/g, ".") : "不明" };
       }
-      // Android（バージョン正確に）
-      if (/Android\s+[\d.]+/.test(ua)) {
-        const v = (ua.match(/Android\s+([\d.]+)/) || [])[1];
-        return { name: `Android ${v}`, detail: `Android ${v}` };
-      }
-      // iOS / iPadOS
-      if (/iP(hone|od|ad)/.test(platform)) {
-        const v = (navigator.appVersion).match(/OS (\d+)_(\d+)_?(\d+)?/);
-        const version = v ? `${v[1]}.${v[2]}.${v[3] || 0}` : "不明";
-        const dev = platform.includes("iPad") ? "iPadOS" : "iOS";
-        return { name: `${dev} ${version}`, detail: navigator.userAgent };
-      }
+
       return { name: "不明", detail: ua };
     }
 
-    function getBrowserInfo() {
-      return navigator.userAgent;
-    }
-
-    async function getIPAndTime() {
-      try {
-        const res = await fetch("https://api.ipify.org?format=json");
-        const json = await res.json();
-        return json.ip;
-      } catch {
-        return "IP取得失敗";
-      }
-    }
-
-    async function updateInfo() {
+    function updateInfo() {
       const os = getOSInfo();
       document.getElementById("osName").textContent = os.name;
       document.getElementById("osDetail").textContent = os.detail;
-      document.getElementById("browserDetail").textContent = getBrowserInfo();
-      document.getElementById("hardwareInfo").textContent = await getHardwareInfo();
-
-      const ip = await getIPAndTime();
-      updateTimeInfo(ip);
-      setInterval(() => updateTimeInfo(ip), 1000);
-    }
-
-    function updateTimeInfo(ip) {
-      const dt = new Date();
-      const tz = -dt.getTimezoneOffset() / 60;
-      const tzTxt = `UTC${tz >= 0 ? "+" : ""}${tz}`;
-      document.getElementById("ipInfo").textContent =
-        `IPアドレス: ${ip}\n現在時刻: ${dt.toLocaleString()}\nタイムゾーン: ${tzTxt}`;
     }
 
     updateInfo();
-
-    // カーソル追従
-    const container = document.getElementById("container");
-    document.addEventListener("mousemove", e => {
-      const x = (e.clientX - window.innerWidth / 2) / 100;
-      const y = (e.clientY - window.innerHeight / 2) / 100;
-      container.style.transform = `translate(${x}px, ${y}px)`;
-    });
   </script>
 </body>
 </html>
