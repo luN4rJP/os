@@ -31,14 +31,14 @@
       white-space: pre-wrap;
       word-break: break-word;
       box-shadow: 0 0 20px rgba(255,255,255,0.15);
-      pointer-events: none; /* クリック不可 */
+      pointer-events: none;
       transition: transform 0.1s ease-out;
     }
   </style>
 </head>
 <body>
   <div id="container">
-    読み込み中...
+    loading...
   </div>
 
   <script>
@@ -57,7 +57,7 @@
 
       function getiOSVersionString() {
         const version = getiOSVersion();
-        if (!version) return "不明";
+        if (!version) return "Unknown";
         return version.join(".");
       }
 
@@ -88,30 +88,27 @@
 
       if (/Mac OS X/.test(ua)) {
         const version = (ua.match(/Mac OS X (\d+[_\.]\d+[_\.]?\d*)/) || [])[1];
-        return { name: "macOS", detail: version ? version.replace(/_/g, ".") : "不明" };
+        return { name: "macOS", detail: version ? version.replace(/_/g, ".") : "Unknown" };
       }
 
-      return { name: "不明", detail: ua };
+      return { name: "Unknown", detail: ua };
     }
 
-    // ブラウザ情報
     function getBrowserInfo() {
       return navigator.userAgent;
     }
 
-    // 解像度情報
     function getScreenInfo() {
       return `${window.screen.width} x ${window.screen.height}`;
     }
 
-    // IP取得
     async function getIP() {
       try {
         const res = await fetch("https://api.ipify.org?format=json");
         const json = await res.json();
         return json.ip;
       } catch {
-        return "取得失敗";
+        return "Unknown";
       }
     }
 
@@ -127,14 +124,14 @@
         const tzTxt = `UTC${tz >= 0 ? "+" : ""}${tz}`;
         const container = document.getElementById("container");
         container.textContent =
-          `【デバイス情報】\n` +
+          `【DeviceInfo】\n` +
           `OS: ${os.name}\n` +
-          `OS詳細: ${os.detail}\n\n` +
-          `ブラウザ: ${browser}\n` +
-          `画面解像度: ${screen}\n\n` +
-          `IPアドレス: ${ip}\n` +
-          `現在時刻: ${dt.toLocaleString()}\n` +
-          `タイムゾーン: ${tzTxt}`;
+          `OSDetail: ${os.detail}\n\n` +
+          `Browser: ${browser}\n` +
+          `Display: ${screen}\n\n` +
+          `IP: ${ip}\n` +
+          `Time: ${dt.toLocaleString()}\n` +
+          `Timezone: ${tzTxt}`;
       }
 
       updateTime();
