@@ -35,10 +35,10 @@
       transition: transform 0.1s ease-out;
     }
     .label {
-  font-weight: bold;
-  display: inline-block;
-  min-width: 6em;
-}
+      font-weight: bold;
+      display: inline-block;
+      min-width: 6em;
+    }
   </style>
 </head>
 <body>
@@ -76,28 +76,28 @@
         return { name: `iPadOS ${version}`, detail: ua };
       }
 
-const androidMatch = ua.match(/Android\s+([\d.]+)/);
-if (androidMatch) {
-  let extra = "";
+      const androidMatch = ua.match(/Android\s+([\d.]+)/);
+      if (androidMatch) {
+        let extra = "";
 
-  if (/MIUI|MiuiBrowser|Mi\s+Build/i.test(ua)) {
-    extra = " / MIUI (MiOS)";
-  } else if (/EMUI|Huawei/i.test(ua)) {
-    extra = " / EMUI";
-  } else if (/ColorOS/i.test(ua)) {
-    extra = " / ColorOS";
-  } else if (/OxygenOS/i.test(ua)) {
-    extra = " / OxygenOS";
-  } else if (/HarmonyOS/i.test(ua)) {
-    extra = " / HarmonyOS";
-  } else if (/LineageOS/i.test(ua)) {
-    extra = " / LineageOS";
-  } else if (/EvolutionX/i.test(ua)) {
-    extra = " / EvolutionX";
-  }
+        if (/MIUI|MiuiBrowser|Mi\s+Build/i.test(ua)) {
+          extra = " / MIUI (MiOS)";
+        } else if (/EMUI|Huawei/i.test(ua)) {
+          extra = " / EMUI";
+        } else if (/ColorOS/i.test(ua)) {
+          extra = " / ColorOS";
+        } else if (/OxygenOS/i.test(ua)) {
+          extra = " / OxygenOS";
+        } else if (/HarmonyOS/i.test(ua)) {
+          extra = " / HarmonyOS";
+        } else if (/LineageOS/i.test(ua)) {
+          extra = " / LineageOS";
+        } else if (/EvolutionX/i.test(ua)) {
+          extra = " / EvolutionX";
+        }
 
-  return { name: "AndroidOS", detail: ua + extra };
-}
+        return { name: "AndroidOS", detail: ua + extra };
+      }
 
       if (/Windows NT 10\.0/.test(ua)) {
         return { name: "Windows 10 / 11", detail: ua };
@@ -114,6 +114,20 @@ if (androidMatch) {
       }
 
       return { name: "Unknown", detail: ua };
+    }
+
+    // 追加：ブラウザ名を取得する関数
+    function getBrowserName() {
+      const ua = navigator.userAgent;
+
+      if (/Edg\//.test(ua)) return "Microsoft Edge";
+      if (/OPR\//.test(ua)) return "Opera";
+      if (/Chrome\//.test(ua)) return "Google Chrome";
+      if (/Safari/.test(ua) && !/Chrome/.test(ua)) return "Safari";
+      if (/Firefox\//.test(ua)) return "Mozilla Firefox";
+      if (/MSIE|Trident/.test(ua)) return "Internet Explorer";
+
+      return "Unknown";
     }
 
     function getBrowserInfo() {
@@ -137,6 +151,7 @@ if (androidMatch) {
     async function updateInfo() {
       const os = getOSInfo();
       const browser = getBrowserInfo();
+      const browserName = getBrowserName();  // ここで取得
       const screen = getScreenInfo();
       const ip = await getIP();
 
@@ -149,7 +164,7 @@ if (androidMatch) {
           `【DeviceInfo】\n\n` +
           `OS: ${os.name}\n\n` +
           `OS Detail: ${os.detail}\n\n` +
-          `Browser: ${browser}\n\n` +
+          `Browser: ${browserName} (${browser})\n\n` +  // ブラウザ名を追加
           `Display: ${screen}\n\n` +
           `IP: ${ip}\n\n` +
           `Time: ${dt.toLocaleString()}\n\n` +
@@ -161,32 +176,34 @@ if (androidMatch) {
     }
 
     updateInfo();
-let targetX = 0, targetY = 0;
-let currentX = 0, currentY = 0;
 
-function animate() {
-  currentX += (targetX - currentX) * 0.01;
-  currentY += (targetY - currentY) * 0.01;
+    let targetX = 0, targetY = 0;
+    let currentX = 0, currentY = 0;
 
-  container.style.transform = `translate(calc(-50% + ${currentX}px), calc(-50% + ${currentY}px))`;
-  requestAnimationFrame(animate);
-}
-animate();
+    function animate() {
+      currentX += (targetX - currentX) * 0.01;
+      currentY += (targetY - currentY) * 0.01;
 
-window.addEventListener("mousemove", (e) => {
-  const centerX = window.innerWidth / 2;
-  const centerY = window.innerHeight / 2;
-  const maxMove = 100;
+      const container = document.getElementById("container");
+      container.style.transform = `translate(calc(-50% + ${currentX}px), calc(-50% + ${currentY}px))`;
+      requestAnimationFrame(animate);
+    }
+    animate();
 
-  let moveX = e.clientX - centerX;
-  let moveY = e.clientY - centerY;
+    window.addEventListener("mousemove", (e) => {
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
+      const maxMove = 100;
 
-  moveX = Math.max(-maxMove, Math.min(maxMove, moveX));
-  moveY = Math.max(-maxMove, Math.min(maxMove, moveY));
+      let moveX = e.clientX - centerX;
+      let moveY = e.clientY - centerY;
 
-  targetX = moveX;
-  targetY = moveY;
-});
+      moveX = Math.max(-maxMove, Math.min(maxMove, moveX));
+      moveY = Math.max(-maxMove, Math.min(maxMove, moveY));
+
+      targetX = moveX;
+      targetY = moveY;
+    });
   </script>
 </body>
 </html>
