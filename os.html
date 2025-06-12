@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DeviceInfo</title>
+  <!-- Google Fonts: Zen Maru Gothic -->
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Zen Maru Gothic", "Segoe UI", sans-serif;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .main-info {
+      font-size: 2rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+      text-align: center;
+      color: #ffffff;
+    }
+
+    .section {
+      margin-bottom: 1rem;
+      background-color: rgba(255, 255, 255, 0.05);
+      padding: 1rem;
+      border-radius: 10px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="container">
+    <div class="main-info" id="osName">OS</div>
+    <div class="section" id="osDetail">OSの詳細</div>
+    <div class="section" id="browserDetail">ブラウザの詳細</div>
+    <div class="section" id="hardwareInfo">ハードウェア情報</div>
+    <div class="section" id="ipInfo">IPアドレスや時間</div>
+  </div>
+
+  <script>
+    async function getHardwareInfo() {
+      const screenRes = `${screen.width}x${screen.height}`;
+      return `画面解像度: ${screenRes}`;
+    }
+
+    function getOSInfo() {
+      const ua = navigator.userAgent;
+      const platform = navigator.platform;
+
+      if (/Windows NT 10\.0/.test(ua) && ua.includes("11_")) {
+        return {
+          name: "Windows 11",
+          detail: "Windows NT 10.0 x64 (Windows 11)"
+        };
+      }
+
+      if (/Windows NT 10\.0/.test(ua)) {
+        return {
+          name: "Windows 10",
+          detail: "Windows NT 10.0 x64"
+        };
+      }
+
+      if (/Windows NT/.test(ua)) {
+        return {
+          name: "Windows",
+          detail: ua.match(/Windows NT [^;)]*/)?.[0] || "Windows NT"
+        };
+      }
+
+      if (/Mac OS X/.test(ua)) {
+        const version = (ua.match(/Mac OS X (\d+[_\.]\d+[_\.]?\d*)/) || [])[1];
+        return {
+          name: "macOS",
+          detail: `Mac OS X ${version ? version.replace(/_/g, ".") : "不明"}`
+        };
+      }
+
+      if (/Android/.test(ua)) {
+        const version = (ua.match(/Android\s([\d.]+)/) || [])[1];
+        return {
+          name: `Android ${version || "不明"}`,
+          detail: ua.match(/Android [^;)]*/)?.[0] || ua
+        };
+      }
+
+      if (/iP(hone|od|ad)/.test(platform)) {
+        const v = (navigator.appVersion).match(/OS (\d+)_(\d+)_?(\d+)?/);
+        const version = v ? `${v[1]}.${v[2]}.${v[3] || 0}` : "不明";
+        const device = platform.includes("iPad") ? "iPadOS" : "iOS";
+        return {
+          name: `${device} ${version}`,
+          detail: navigator.userAgent
+        };
+      }
+
+      return { name: "不明", detail: ua };
+    }
+
+    function getBrowserInfo() {
+      return navigator.userAgent;
+    }
+
+    async function getIPAndTime() {
+      try {
+        const res = await fetch("https://api.ipify.org?format=json");
+        const data = await res.json();
+        return data.ip;
+      } catch (e) {
+        return "IP取得失敗";
+      }
+    }
+
+    async function updateInfo() {
+      const os = getOSInfo();
+      document.getElementById("osName").textContent = os.name;
+      document.getElementById("osDetail").textContent = os.detail;
+      document.getElementById("browserDetail").textContent = getBrowserInfo();
+      document.getElementById("hardwareInfo").textContent = await getHardwareInfo();
+
+      const ip = await getIPAndTime();
+      updateTimeInfo(ip);
+      setInterval(() => updateTimeInfo(ip), 1000);
+    }
+
+    function updateTimeInfo(ip) {
+      const date = new Date();
+      const timezoneOffset = -date.getTimezoneOffset() / 60;
+      const timezone = `UTC${timezoneOffset >= 0 ? "+" : ""}${timezoneOffset}`;
+      document.getElementById("ipInfo").textContent =
+        `IPアドレス: ${ip}\n現在時刻: ${date.toLocaleString()}\nタイムゾーン: ${timezone}`;
+    }
+
+    updateInfo();
+
+    const container = document.getElementById('container');
+    document.addEventListener('mousemove', (e) => {
+      const x = (e.clientX - window.innerWidth / 2) / 100;
+      const y = (e.clientY - window.innerHeight / 2) / 100;
+      container.style.transform = `translate(${x}px, ${y}px)`;
+    });
+  </script>
+</body>
+</html>
