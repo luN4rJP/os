@@ -31,7 +31,7 @@
       white-space: pre-wrap;
       word-break: break-word;
       box-shadow: 0 0 20px rgba(255,255,255,0.15);
-      pointer-events: none; /* クリック不可 */
+      pointer-events: none;
       transition: transform 0.1s ease-out;
     }
   </style>
@@ -42,9 +42,7 @@
   </div>
 
   <script>
-    // 取得関数省略（前のgetOSInfoやIP取得等をここに入れる）
 
-    // OS情報取得関数
     function getOSInfo() {
       const ua = navigator.userAgent;
       const platform = navigator.platform;
@@ -96,17 +94,14 @@
       return { name: "不明", detail: ua };
     }
 
-    // ブラウザ情報
     function getBrowserInfo() {
       return navigator.userAgent;
     }
 
-    // 解像度情報
     function getScreenInfo() {
       return `${window.screen.width} x ${window.screen.height}`;
     }
 
-    // IP取得
     async function getIP() {
       try {
         const res = await fetch("https://api.ipify.org?format=json");
@@ -117,7 +112,6 @@
       }
     }
 
-    // 情報更新
     async function updateInfo() {
       const os = getOSInfo();
       const browser = getBrowserInfo();
@@ -146,21 +140,11 @@
 
     updateInfo();
 
-    // カーソル追従（中心基準で小さく動く）
     const container = document.getElementById("container");
-    window.addEventListener("mousemove", (e) => {
-      const centerX = window.innerWidth / 2;
-      const centerY = window.innerHeight / 2;
-      // 最大移動量(px)
-      const maxMove = 20;
-      // マウス位置から中心までの距離を -maxMove〜maxMove に制限
-      let moveX = e.clientX - centerX;
-      let moveY = e.clientY - centerY;
-
-      moveX = Math.max(-maxMove, Math.min(maxMove, moveX));
-      moveY = Math.max(-maxMove, Math.min(maxMove, moveY));
-
-      container.style.transform = `translate(calc(-50% + ${moveX}px), calc(-50% + ${moveY}px))`;
+    document.addEventListener("mousemove", e => {
+      const x = (e.clientX - window.innerWidth / 2) / 100;
+      const y = (e.clientY - window.innerHeight / 2) / 100;
+      container.style.transform = `translate(${x}px, ${y}px)`;
     });
   </script>
 </body>
