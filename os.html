@@ -110,12 +110,49 @@ function getOSInfo() {
   return { name: "不明", detail: ua };
 }
 
-    function updateInfo() {
-const os = getOSInfo();
-document.getElementById("osName").textContent = os.name;
-document.getElementById("osDetail").textContent = os.detail;
+    function getBrowserInfo() {
+      return navigator.userAgent;
+    }
 
-      updateInfo();
+    async function getIPAndTime() {
+      try {
+        const res = await fetch("https://api.ipify.org?format=json");
+        const json = await res.json();
+        return json.ip;
+      } catch {
+        return "IP取得失敗";
+      }
+    }
+
+    async function updateInfo() {
+      const os = getOSInfo();
+      document.getElementById("osName").textContent = os.name;
+      document.getElementById("osDetail").textContent = os.detail;
+      document.getElementById("browserDetail").textContent = getBrowserInfo();
+      document.getElementById("hardwareInfo").textContent = await getHardwareInfo();
+
+      const ip = await getIPAndTime();
+      updateTimeInfo(ip);
+      setInterval(() => updateTimeInfo(ip), 1000);
+    }
+
+    function updateTimeInfo(ip) {
+      const dt = new Date();
+      const tz = -dt.getTimezoneOffset() / 60;
+      const tzTxt = `UTC${tz >= 0 ? "+" : ""}${tz}`;
+      document.getElementById("ipInfo").textContent =
+        `IPアドレス: ${ip}\n現在時刻: ${dt.toLocaleString()}\nタイムゾーン: ${tzTxt}`;
+    }
+
+    updateInfo();
+
+    // カーソル追従
+    const container = document.getElementById("container");
+    document.addEventListener("mousemove", e => {
+      const x = (e.clientX - window.innerWidth / 2) / 100;
+      const y = (e.clientY - window.innerHeight / 2) / 100;
+      container.style.transform = `translate(${x}px, ${y}px)`;
+    });
   </script>
 </body>
 </html>
