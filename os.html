@@ -36,8 +36,10 @@
     }
     .label {
       font-weight: bold;
+      font-size: 1.5em;
       display: inline-block;
       min-width: 6em;
+      color: white;
     }
   </style>
 </head>
@@ -116,7 +118,6 @@
       return { name: "Unknown", detail: ua };
     }
 
-    // 追加：ブラウザ名を取得する関数
     function getBrowserName() {
       const ua = navigator.userAgent;
 
@@ -151,7 +152,7 @@
     async function updateInfo() {
       const os = getOSInfo();
       const browser = getBrowserInfo();
-      const browserName = getBrowserName();  // ここで取得
+      const browserName = getBrowserName();
       const screen = getScreenInfo();
       const ip = await getIP();
 
@@ -160,15 +161,15 @@
         const tz = -dt.getTimezoneOffset() / 60;
         const tzTxt = `UTC${tz >= 0 ? "+" : ""}${tz}`;
         const container = document.getElementById("container");
-        container.textContent =
-          `【DeviceInfo】\n\n` +
-          `OS: ${os.name}\n\n` +
-          `OS Detail: ${os.detail}\n\n` +
-          `Browser: ${browserName} (${browser})\n\n` +  // ブラウザ名を追加
-          `Display: ${screen}\n\n` +
-          `IP: ${ip}\n\n` +
-          `Time: ${dt.toLocaleString()}\n\n` +
-          `Timezone: ${tzTxt}`;
+        container.innerHTML =
+          `<span class="label">【DeviceInfo】</span>\n\n` +
+          `<span class="label">OS:</span> ${os.name}\n\n` +
+          `<span class="label">OS Detail:</span> ${os.detail}\n\n` +
+          `<span class="label">Browser:</span> ${browserName} (${browser})\n\n` +
+          `<span class="label">Display:</span> ${screen}\n\n` +
+          `<span class="label">IP:</span> ${ip}\n\n` +
+          `<span class="label">Time:</span> ${dt.toLocaleString()}\n\n` +
+          `<span class="label">Timezone:</span> ${tzTxt}`;
       }
 
       updateTime();
